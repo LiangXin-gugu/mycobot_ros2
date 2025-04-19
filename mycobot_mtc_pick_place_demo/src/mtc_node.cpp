@@ -161,7 +161,7 @@ MTCTaskNode::MTCTaskNode(const rclcpp::NodeOptions& options)
   declare_parameter("object_type", "cylinder", "Type of the object to be manipulated");
   declare_parameter("object_reference_frame", "base_link", "Reference frame for the object");
   declare_parameter("object_dimensions", std::vector<double>{0.35, 0.0125}, "Dimensions of the object [height, radius]");
-  declare_parameter("object_pose", std::vector<double>{0.22, 0.12, 0.0, 0.0, 0.0, 0.0}, "Initial pose of the object [x, y, z, roll, pitch, yaw]");
+  // declare_parameter("object_pose", std::vector<double>{0.22, 0.12, 0.0, 0.0, 0.0, 0.0}, "Initial pose of the object [x, y, z, roll, pitch, yaw]");
 
   // Grasp and place parameters
   declare_parameter("grasp_frame_transform", std::vector<double>{0.0, 0.0, 0.096, 1.5708, 0.0, 0.0}, "Transform from gripper frame to grasp frame [x, y, z, roll, pitch, yaw]");
@@ -186,6 +186,10 @@ MTCTaskNode::MTCTaskNode(const rclcpp::NodeOptions& options)
 
   // Place generation parameters
   declare_parameter("place_pose_max_ik_solutions", 10, "Maximum number of IK solutions for place pose generation");
+
+  // Pipeline planner parameters
+  declare_parameter("pipeline_max_velocity_scaling", 1.0, "Max velocity scaling factor for Pipeline planner");
+  declare_parameter("pipeline_max_acceleration_scaling", 1.0, "Max acceleration scaling factor for Pipeline planner");
 
   // Cartesian planner parameters
   declare_parameter("cartesian_max_velocity_scaling", 1.0, "Max velocity scaling factor for Cartesian planner");
@@ -263,7 +267,7 @@ void MTCTaskNode::setupPlanningScene()
   auto object_name = this->get_parameter("object_name").as_string();
   auto object_type = this->get_parameter("object_type").as_string();
   auto object_dimensions = this->get_parameter("object_dimensions").as_double_array();
-  auto object_pose_param = this->get_parameter("object_pose").as_double_array();
+  // auto object_pose_param = this->get_parameter("object_pose").as_double_array();
   auto object_reference_frame = this->get_parameter("object_reference_frame").as_string();
 
   RCLCPP_INFO(this->get_logger(), "Initial target object parameters:");
@@ -305,7 +309,7 @@ void MTCTaskNode::setupPlanningScene()
   RCLCPP_INFO(this->get_logger(), "Received target_object_id from service: '%s'", target_object_id_.c_str());
   for (const auto& collision_object : scene_world_.collision_objects) {
     if (collision_object.id == target_object_id_) {
-      updateObjectParameters(collision_object);
+      updateObjectParameters(collision_object);//update parameter "object_name", "object_type" and "object_dimensions"
       break;
     }
   }
@@ -407,9 +411,9 @@ mtc::Task MTCTaskNode::createTask()
   // Object parameters
   auto object_name = this->get_parameter("object_name").as_string();
   auto object_type = this->get_parameter("object_type").as_string();
-  auto object_reference_frame = this->get_parameter("object_reference_frame").as_string();
+  // auto object_reference_frame = this->get_parameter("object_reference_frame").as_string();
   auto object_dimensions = this->get_parameter("object_dimensions").as_double_array();
-  auto object_pose = this->get_parameter("object_pose").as_double_array();
+  // auto object_pose = this->get_parameter("object_pose").as_double_array();
 
   RCLCPP_INFO(this->get_logger(), "Creating task for object:");
   RCLCPP_INFO(this->get_logger(), "  Name: %s", object_name.c_str());
@@ -445,6 +449,10 @@ mtc::Task MTCTaskNode::createTask()
   // Place generation parameters
   auto place_pose_max_ik_solutions = this->get_parameter("place_pose_max_ik_solutions").as_int();
 
+  // Pipeline planner parameters
+  auto pipeline_max_velocity_scaling = this->get_parameter("pipeline_max_velocity_scaling").as_double();
+  auto pipeline_max_acceleration_scaling = this->get_parameter("pipeline_max_acceleration_scaling").as_double();
+
   // Cartesian planner parameters
   auto cartesian_max_velocity_scaling = this->get_parameter("cartesian_max_velocity_scaling").as_double();
   auto cartesian_max_acceleration_scaling = this->get_parameter("cartesian_max_acceleration_scaling").as_double();
@@ -464,15 +472,11 @@ mtc::Task MTCTaskNode::createTask()
   // Create planners for different types of motion
   // Pipeline planner for complex movements
   // OMPL planner
-  // std::unordered_map<std::string, std::string> ompl_map_arm = {
-  //   {"ompl", arm_group_name + "[RRTConnectkConfigDefault]"}
-  // };
-  // auto ompl_planner_arm = std::make_shared<mtc::solvers::PipelinePlanner>(
-  //   this->shared_from_this(),
-  //   ompl_map_arm);
-
   auto ompl_planner_arm = std::make_shared<mtc::solvers::PipelinePlanner>(this->shared_from_this());
-  
+  ompl_planner_arm->setMaxVelocityScalingFactor(pipeline_max_velocity_scaling);
+  ompl_planner_arm->setMaxAccelerationScalingFactor(pipeline_max_acceleration_scaling);
+
+
   RCLCPP_INFO(this->get_logger(), "OMPL planner created for the arm group");
 
   // JointInterpolation is a basic planner that is used for simple motions
@@ -531,9 +535,8 @@ mtc::Task MTCTaskNode::createTask()
   auto stage_move_to_pick = std::make_unique<mtc::stages::Connect>(
       "move to pick",
       mtc::stages::Connect::GroupPlannerVector{
-        {arm_group_name, ompl_planner_arm},
-        {gripper_group_name, interpolation_planner}
-      });
+        {arm_group_name, ompl_planner_arm}
+      });  
   stage_move_to_pick->setTimeout(move_to_pick_timeout);
   stage_move_to_pick->properties().configureInitFrom(mtc::Stage::PARENT);
   task.add(std::move(stage_move_to_pick));
@@ -599,7 +602,7 @@ mtc::Task MTCTaskNode::createTask()
       stage->properties().configureInitFrom(mtc::Stage::PARENT);
       stage->properties().set("marker_ns", "grasp_pose");
       stage->setPreGraspPose(gripper_open_pose);
-      stage->setObject(object_name);
+      stage->setObject(object_name);// object name is actually the object id of collision objects in planning scene, and through this object name, mtc can get the object's information.
       stage->setAngleDelta(grasp_pose_angle_delta); //  Angular resolution for sampling grasp poses around the object
       stage->setMonitoredStage(current_state_ptr);  // Ensure grasp poses are valid given the initial configuration of the robot
 
@@ -607,7 +610,17 @@ mtc::Task MTCTaskNode::createTask()
       auto wrapper = std::make_unique<mtc::stages::ComputeIK>("grasp pose IK", std::move(stage));
       wrapper->setMaxIKSolutions(grasp_pose_max_ik_solutions);
       wrapper->setMinSolutionDistance(grasp_pose_min_solution_distance);
-      wrapper->setIKFrame(vectorToEigen(grasp_frame_transform), gripper_frame); // Transform from gripper frame to tool center point (TCP)
+      if(object_type == "cylinder") {
+        grasp_frame_transform[2] += object_dimensions[0] / 2.0; // Move the grasp frame to the top of the cylinder
+      } 
+      else if (object_type == "box") {
+        grasp_frame_transform[2] += object_dimensions[2] / 2.0; // Move the grasp frame to the top of the box
+      }
+      else{
+        RCLCPP_ERROR(this->get_logger(), "Unsupported object type. Only cylinders and boxes are supported.");
+        return task;
+      }
+      wrapper->setIKFrame(vectorToEigen(grasp_frame_transform), gripper_frame); // Transform from gripper frame to tool center point (TCP). i.e. make tool center point frame coincide with object frame
       wrapper->properties().configureInitFrom(mtc::Stage::PARENT, { "eef", "group" });
       wrapper->properties().configureInitFrom(mtc::Stage::INTERFACE, { "target_pose" });
       grasp->insert(std::move(wrapper));
@@ -710,8 +723,7 @@ mtc::Task MTCTaskNode::createTask()
     auto stage_move_to_place = std::make_unique<mtc::stages::Connect>(
       "move to place",
       mtc::stages::Connect::GroupPlannerVector{
-        {arm_group_name, ompl_planner_arm},
-        {gripper_group_name, interpolation_planner}
+        {arm_group_name, ompl_planner_arm}
       });
     stage_move_to_place->setTimeout(move_to_place_timeout);
     stage_move_to_place->properties().configureInitFrom(mtc::Stage::PARENT);
@@ -763,7 +775,17 @@ mtc::Task MTCTaskNode::createTask()
       geometry_msgs::msg::PoseStamped target_pose_msg;
       target_pose_msg.header.frame_id = world_frame;
       target_pose_msg.pose = vectorToPose(place_pose);
-      target_pose_msg.pose.position.z += place_pose_z_offset_factor * object_dimensions[0];
+      if(object_type == "cylinder") {
+        target_pose_msg.pose.position.z += place_pose_z_offset_factor * object_dimensions[0];
+      } 
+      else if (object_type == "box") {
+        target_pose_msg.pose.position.z += place_pose_z_offset_factor * object_dimensions[2];
+      }
+      else{
+        RCLCPP_ERROR(this->get_logger(), "Unsupported object type. Only cylinders and boxes are supported.");
+        return task;
+      }
+      
       stage->setPose(target_pose_msg);
       stage->setMonitoredStage(attach_object_stage);  // hook into successful pick solutions
 
@@ -837,10 +859,13 @@ mtc::Task MTCTaskNode::createTask()
    *****************************************************/
   {
     auto stage = std::make_unique<mtc::stages::MoveTo>("move home", ompl_planner_arm);
-    // stage->properties().set("trajectory_execution_info",
-    //                   mtc::TrajectoryExecutionInfo().set__controller_names(controller_names));
-    stage->properties().configureInitFrom(mtc::Stage::PARENT, { "group" });
+    // auto stage = std::make_unique<mtc::stages::MoveTo>("move home", interpolation_planner);
     stage->setGoal(arm_home_pose);
+    stage->restrictDirection(mtc::stages::MoveTo::FORWARD);
+    stage->properties().set("trajectory_execution_info",
+                      mtc::TrajectoryExecutionInfo().set__controller_names(controller_names));
+    stage->properties().configureInitFrom(mtc::Stage::PARENT, { "group" });
+    
     task.add(std::move(stage));
   }
   return task;

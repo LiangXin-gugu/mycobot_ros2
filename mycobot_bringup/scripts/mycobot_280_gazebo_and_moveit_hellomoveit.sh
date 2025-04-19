@@ -1,5 +1,5 @@
 #!/bin/bash
-# Single script to launch point cloud viewing
+# Single script to launch the mycobot with Gazebo, RViz, and MoveIt 2
 
 cleanup() {
     echo "Cleaning up..."
@@ -7,11 +7,13 @@ cleanup() {
     pkill -9 -f "ros2|gazebo|gz|nav2|amcl|bt_navigator|nav_to_pose|rviz2|assisted_teleop|cmd_vel_relay|robot_state_publisher|joint_state_publisher|move_to_free|mqtt|autodock|cliff_detection|moveit|move_group|basic_navigator"
 }
 
-
 # Set up cleanup trap
 trap 'cleanup' SIGINT SIGTERM
 
 echo "Launching Gazebo simulation..."
+
+# ros2_controller joint_state_broadcaster has already publish topic "/joint_states",
+# so there is no need to start joint_state_publisher node
 ros2 launch mycobot_gazebo mycobot.gazebo.launch.py \
     load_controllers:=true \
     world_file:=pick_and_place_demo.world \
@@ -19,9 +21,11 @@ ros2 launch mycobot_gazebo mycobot.gazebo.launch.py \
     use_rviz:=false \
     use_robot_state_pub:=true \
     use_sim_time:=true \
+    jsp_gui:=false \
+    jsp:=false \
     x:=0.0 \
     y:=0.0 \
-    z:=0.0 \
+    z:=0.05 \
     roll:=0.0 \
     pitch:=0.0 \
     yaw:=0.0 &
@@ -31,23 +35,15 @@ sleep 5
 ign service -s /gui/move_to/pose --reqtype ignition.msgs.GUICamera --reptype ignition.msgs.Boolean --timeout 2000 --req "pose: {position: {x:  0.4080, y: 0.1804, z: 0.5592} orientation: {x: 0.2876, y: 0.1127, z: -0.8856, w:0.3469}}"
 
 sleep 5
+echo "Launching the move group interface..."
+ros2 launch mycobot_moveit_config move_group.launch.py &
 
 echo "Adjusting camera position..."
-ign service -s /gui/move_to/pose \
-    --reqtype gz.msgs.GUICamera \
-    --reptype gz.msgs.Boolean \
-    --timeout 2000 \
-    --req "pose: {position: {x: 1.36, y: -0.58, z: 0.95} orientation: {x: -0.26, y: 0.1, z: 0.89, w: 0.35}}" &
+ign service -s /gui/move_to/pose --reqtype gz.msgs.GUICamera --reptype gz.msgs.Boolean --timeout 2000 --req "pose: {position: {x: 1.36, y: -0.58, z: 0.95} orientation: {x: -0.26, y: 0.1, z: 0.89, w: 0.35}}"
 
-sleep 10
+sleep 5
+echo "starting hello_moveit"
+ros2 run mycobot_moveit_demos hello_moveit
 
-# Select one of the commands below. Comment out the others
-
-# See the full point cloud
-ros2 launch mycobot_mtc_pick_place_demo point_cloud_viewer.launch.py file_name:=/home/gugu/Downloads/4_convertToPCL_debug_cloud.pcd
-
-# See the support plane that was extracted from the point cloud
-# ros2 launch mycobot_mtc_pick_place_demo point_cloud_viewer.launch.py file_name:=/home/gugu/Downloads/5_support_plane_debug_cloud.pcd
-
-# See the objects cloud that was extracted from the point cloud
-# ros2 launch mycobot_mtc_pick_place_demo point_cloud_viewer.launch.py file_name:=/home/gugu/Downloads/5_objects_cloud_debug_cloud.pcd
+# Keep the script running until Ctrl+C
+wait

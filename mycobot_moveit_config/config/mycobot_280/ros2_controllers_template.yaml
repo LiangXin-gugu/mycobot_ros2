@@ -7,11 +7,11 @@ controller_manager:
     # The JointTrajectoryController allows you to send joint trajectory commands to a group
     # of joints on a robot. These commands specify the desired positions for each joint.
     arm_controller:
-      type: joint_trajectory_controller/JointTrajectoryController
+      type: joint_trajectory_controller_gugu/JointTrajectoryController
 
     # Controls the gripper
     gripper_action_controller:
-      type: position_controllers/GripperActionController
+      type: position_controllers_gugu/GripperActionController
 
     # Responsible for publishing the current state of the robot's
     # joints to the /joint_states ROS 2 topic
@@ -51,13 +51,35 @@ arm_controller:
     # Allow non-zero velocity at the end of the trajectory
     allow_nonzero_velocity_at_trajectory_end: true
 
+    constraints:
+      stopped_velocity_tolerance: 0.001
+      goal_time: 2.0
+      ${prefix}link1_to_${prefix}link2:
+        goal: 0.05
+        trajectory: 0.0
+      ${prefix}link2_to_${prefix}link3:
+        goal: 0.05
+        trajectory: 0.0
+      ${prefix}link3_to_${prefix}link4:
+        goal: 0.05
+        trajectory: 0.0
+      ${prefix}link4_to_${prefix}link5:
+        goal: 0.05
+        trajectory: 0.0
+      ${prefix}link5_to_${prefix}link6:
+        goal: 0.05
+        trajectory: 0.0
+      ${prefix}link6_to_${prefix}${flange_link}:
+        goal: 0.05
+        trajectory: 0.0
+
 gripper_action_controller:
   ros__parameters:
     joint: ${prefix}gripper_controller
     action_monitor_rate: 20.0
-    goal_tolerance: 0.01
+    goal_tolerance: 0.001
     max_effort: 100.0
-    allow_stalling: false
+    allow_stalling: true
     stall_velocity_threshold: 0.001
-    stall_timeout: 1.0
+    stall_timeout: 0.5
 

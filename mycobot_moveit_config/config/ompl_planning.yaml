@@ -13,7 +13,7 @@ planning_plugin: ompl_interface/OMPLPlanner
 #   - default_planning_response_adapters/DisplayMotionPath
 
 request_adapters: >-
-  default_planner_request_adapters/AddTimeOptimalParameterization
+  default_planner_request_adapters/AddTimeOptimalParameterizationGuGu
   default_planner_request_adapters/ResolveConstraintFrames
   default_planner_request_adapters/FixWorkspaceBounds
   default_planner_request_adapters/FixStartStateBounds
@@ -74,6 +74,7 @@ planner_configs:
     range: 0.0  # Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()
   RRTstarkConfigDefault:
     type: geometric::RRTstar
+    optimization_objective: MaximizeMinClearanceObjective
     range: 0.0  # Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()
     goal_bias: 0.05  # When close to goal select goal, with this probability? default: 0.05
     delay_collision_checking: 1  # Stop collision checking as soon as C-free parent found. default 1
@@ -224,7 +225,7 @@ gripper:
     - SPARStwokConfigDefault
     - TrajOptDefault
 arm_with_gripper:
-  default_planner_config: RRTConnectGugukConfigDefault
+  default_planner_config: RRTConnectkConfigDefault
   planner_configs:
     - APSConfigDefault
     - SBLkConfigDefault

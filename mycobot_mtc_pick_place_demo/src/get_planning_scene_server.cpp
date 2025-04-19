@@ -380,6 +380,12 @@ class GetPlanningSceneServer : public rclcpp::Node {
     }
   }
 
+  /// @brief 输入原始传感器获得的pointcloud，及期望frame，输出在期望frame下的pointcloud。利用PCL库内的pcl::transformPointCloud函数转换。
+  ///        除转换外，还利用PCL对point cloude crop，即只保留指定范围内的点云。
+  ///        不涉及手眼标定，这里假定传感器和机器人末端执行器之间的坐标变换已知，可通过tf2_ros查询。
+  /// @param cloud_msg (sensor_msgs::msg::PointCloud2::SharedPt)
+  /// @param target_frame （std::string）
+  /// @return target_frame下的pointcloud(sensor_msgs::msg::PointCloud2::SharedPt)
   sensor_msgs::msg::PointCloud2::SharedPtr transformPointCloud(
       const sensor_msgs::msg::PointCloud2::SharedPtr& cloud_msg,
       const std::string& target_frame) {

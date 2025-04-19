@@ -2,33 +2,46 @@ mtc_node:
   ros__parameters:
     # General parameters
     execute: false
-    max_solutions: 25
+    max_solutions: 1
 
     # Controller parameters
     controller_names:
       - "arm_controller"
-      - "grip_action_controller"
+      - "gripper_action_controller"
 
     # Robot configuration parameters
     arm_group_name: "arm"
+    arm_home_pose: "home"
     gripper_group_name: "gripper"
     gripper_frame: "link6_flange"
     gripper_open_pose: "open"
-    gripper_close_pose: "half_closed"
-    arm_home_pose: "home"
+    # gripper_close_pose: "half_closed"
+    gripper_close_pose: "closed"
+    
 
     # Scene frame parameters
     world_frame: "base_link"
 
     # Object parameters
     object_name: "object"
+
     object_type: "cylinder"
     object_reference_frame: "base_link"
-    object_dimensions: [0.35, 0.0125]
-    object_pose: [0.22, 0.12, 0.0, 0.0, 0.0, 0.0]
+    object_dimensions: [0.1, 0.0125] # red_cylinder
+    # object_dimensions: [0.11, 0.01] # red_cylinder1
+    # object_dimensions: [0.09, 0.011] # red_cylinder2
+
+    # object_type: "box"
+    # object_reference_frame: "base_link"
+    # object_dimensions: [0.02, 0.02, 0.12] # red_box
+
 
     # Grasp and place parameters
-    grasp_frame_transform: [0.0, 0.0, 0.096, 1.5708, 0.0, 0.0]
+    # 1.1 grasp_from_side
+    # grasp_frame_transform: [0.0, 0.0, 0.096, 1.5708, 0.0, 0.0] 
+    # 1.2 grasp_from_above
+    grasp_frame_transform: [0.0, 0.01, 0.096, 3.14159, 0.0, 0.0]
+
     place_pose: [-0.183, -0.14, 0.0, 0.0, 0.0, 0.0]
 
     # Motion planning parameters
@@ -37,7 +50,7 @@ mtc_node:
     lift_object_min_dist: 0.005
     lift_object_max_dist: 0.3
     lower_object_min_dist: 0.005
-    lower_object_max_dist: 0.4
+    lower_object_max_dist: 0.3
 
     # Timeout parameters
     move_to_pick_timeout: 10.0
@@ -50,6 +63,10 @@ mtc_node:
 
     # Place generation parameters
     place_pose_max_ik_solutions: 10
+
+    # Pipeline planner parameters
+    pipeline_max_velocity_scaling: 1.0
+    pipeline_max_acceleration_scaling: 1.0
 
     # Cartesian planner parameters
     cartesian_max_velocity_scaling: 1.0
@@ -64,5 +81,5 @@ mtc_node:
 
     # Other parameters
     place_pose_z_offset_factor: 0.5
-    retreat_min_distance: 0.025
-    retreat_max_distance: 0.25
+    retreat_min_distance: 0.005
+    retreat_max_distance: 0.3

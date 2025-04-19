@@ -84,11 +84,45 @@
     <include>
       <uri>model://red_cylinder</uri>
       <name>red_cylinder</name>
-      <pose>0.22 0.12 0.175 0 0 0</pose>
+      <!-- <pose>0.16 0.14 0.06 0 0 0</pose> -->
+      <pose>0.12 0.16 0.06 0 0 0</pose>
     </include>
+
+    <include>
+      <uri>model://red_cylinder1</uri>
+      <name>red_cylinder1</name>
+      <!-- <pose>0.14 0.10 0.06 0 0 0</pose> -->
+      <pose>0.22 0.10 0.06 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://red_cylinder2</uri>
+      <name>red_cylinder2</name>
+      <pose>0.19 0.18 0.06 0 0 0</pose>
+    </include>
+
+    <!-- <include>
+      <uri>model://red_cylinder3</uri>
+      <name>red_cylinder3</name>
+      <pose>0.22 0.10 0.06 0 0 0</pose>
+    </include> -->
+
+    <!-- Include the box model -->
+    <include>
+      <uri>model://red_box</uri>
+      <name>red_box</name>
+      <!-- <pose>0.12 0.16 0.06 0 0 0</pose> -->
+      <pose>0.14 0.10 0.06 0 0 0</pose>
+    </include>
+
+    <!-- <include>
+      <uri>model://red_box1</uri>
+      <name>red_box1</name>
+      <pose>0.14 0.30 0.06 0 0 0</pose>
+    </include> -->
  
     <!-- Include the other objects -->
- 
+<!--  
     <include>
       <uri>model://mustard</uri>
       <pose>0.7 0.15 0.08 0 0 0</pose>
@@ -107,7 +141,7 @@
     <include>
       <uri>model://coke_can</uri>
       <pose>0.5 0.15 0.0 0 0 2.3</pose>
-    </include>
+    </include> -->
  
     <!-- Define scene properties -->
     <scene>

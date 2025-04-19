@@ -12,8 +12,18 @@
         <joint name="link6_flange_to_gripper_base"/>
     </group>
 
-    <group name="gripper">
+    <!-- <group name="gripper">
         <joint name="gripper_controller"/>
+    </group> -->
+
+    <group name="gripper">
+        <link name="gripper_base"/>
+        <link name="gripper_left1"/>
+        <link name="gripper_left2"/>
+        <link name="gripper_left3"/>
+        <link name="gripper_right1"/>
+        <link name="gripper_right2"/>
+        <link name="gripper_right3"/>
     </group>
 
     <group name="arm_with_gripper">

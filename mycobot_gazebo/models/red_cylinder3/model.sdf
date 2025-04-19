@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.6">
-  <model name="red_cylinder">
+  <model name="red_cylinder3">
     <static>false</static>
     <link name="link">
       <inertial>
@@ -17,8 +17,8 @@
       <collision name="collision">
         <geometry>
           <cylinder>
-            <radius>0.0125</radius>
-            <length>0.1</length>
+            <radius>0.015</radius>
+            <length>0.2</length>
           </cylinder>
         </geometry>
         <surface>
@@ -32,7 +32,7 @@
             </ode>
             <torsional>
               <coefficient>0.1</coefficient>
-              <surface_radius>0.015</surface_radius>
+              <surface_radius>0.01</surface_radius>
               <use_patch_radius>true</use_patch_radius>
             </torsional>
           </friction>
@@ -55,8 +55,8 @@
       <visual name="visual">
         <geometry>
           <cylinder>
-            <radius>0.0125</radius>
-            <length>0.1</length>
+            <radius>0.015</radius>
+            <length>0.2</length>
           </cylinder>
         </geometry>
         <material>

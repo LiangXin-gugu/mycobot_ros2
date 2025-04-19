@@ -24,8 +24,11 @@ ros2 launch mycobot_gazebo mycobot.gazebo.launch.py \
     roll:=0.0 \
     pitch:=0.0 \
     yaw:=0.0 &
+sleep 5
 
-sleep 15
+ign service -s /gui/move_to/pose --reqtype ignition.msgs.GUICamera --reptype ignition.msgs.Boolean --timeout 2000 --req "pose: {position: {x:  0.4080, y: 0.1804, z: 0.5592} orientation: {x: 0.2876, y: 0.1127, z: -0.8856, w:0.3469}}"
+
+sleep 5
 echo "Launching the move group interface..."
 ros2 launch mycobot_moveit_config move_group.launch.py \
     rviz_config_file:=mtc_demos.rviz \
