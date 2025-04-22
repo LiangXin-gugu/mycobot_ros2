@@ -9,7 +9,7 @@
         <joint name="link4_to_link5"/>
         <joint name="link5_to_link6"/>
         <joint name="link6_to_link6_flange"/>
-        <joint name="link6_flange_to_gripper_base"/>
+        <!-- <joint name="link6_flange_to_gripper_base"/> -->
     </group>
 
     <!-- <group name="gripper">

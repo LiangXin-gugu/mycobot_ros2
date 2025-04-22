@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+<robot name="mycobot_280" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
   <xacro:property name="joint_effort" value="56.0"/>
   <xacro:property name="joint_velocity" value="2.792527"/>
@@ -44,6 +44,7 @@
       <visual>
         <geometry>
           <mesh filename="file://$(find mycobot_description)/meshes/mycobot_280/visual/link1.dae"/>
+          <!-- <mesh filename="file://C:/Users/liang/Documents/MATLAB/IK_solve/mycobot_description/meshes/link1.dae"/> -->
         </geometry>
         <origin xyz="0.0 0 0" rpy="0 0 ${-pi/2}"/>
       </visual>
@@ -220,4 +221,22 @@
     <xacro:material_visual ref_link="${prefix}${flange_link}" ambient="0.5 0.5 0.5 1" diffuse="0.5 0.5 0.5 1" specular="0.5 0.5 0.5 1"/>
 
   </xacro:macro>
+
+
+  <link name="world"/>
+  <link name="base_link"/>
+
+  <joint name="virtual_joint" type="fixed">
+      <parent link="world"/>
+      <child link="base_link"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  
+      
+  <xacro:mycobot_280_arm
+    base_link="base_link"
+    flange_link="link6_flange"
+    prefix="">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:mycobot_280_arm>
 </robot>
